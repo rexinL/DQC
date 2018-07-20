@@ -1,0 +1,63 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - 我的 ASP.NET 應用程式</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+
+</head>
+<body>
+    <div class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="container">
+            <div class="navbar-header">
+                @*<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbarsExampleDefault"
+                        aria-controls="navbarsExampleDefault">*@
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" 
+                            aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                       
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                @Html.ActionLink("Top 10 Exchange Markets for Virtual Coin", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">@Html.ActionLink("Index", "Index", "Home", new { area = "" }, new { @class= "nav-link"})</li>
+                    <li class="nav-item">@Html.ActionLink("Exchanges", "Index", "Exchange", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li class="nav-item">@Html.ActionLink("Top 10 Detail", "Top10Detail", "Exchange", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li class="nav-item">@Html.ActionLink("About", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+                    <li class="nav-item">@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
+                </ul>
+                @Html.Partial("_LoginPartial")
+            </div>
+        </div>
+    </div>
+    <main role="main">
+        <br /><br /><br /><br /><br />
+        <div class="container">
+     
+                @RenderBody()
+            </div>
+        </main>
+    
+    <hr />
+    <footer>
+        <p>&copy; @DateTime.Now.Year - Top 10 Exchange Markets for Virtual Coin</p>
+    </footer>
+    @*<div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - 我的 ASP.NET 應用程式</p>
+        </footer>
+    </div>*@
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>

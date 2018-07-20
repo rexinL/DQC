@@ -1,0 +1,45 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+<script>
+
+    document.addEventListener ("DOMContentLoaded", function () {
+     
+        //alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+        (async () => {
+            var ex = ccxt.exchanges;
+            document.getElementById ('exchange_list').innerHTML=ex.join("<br />");
+        }) ();
+    });
+</script>
+
+<h2>Exchanges</h2>
+Top 10  Exchanges from <a href="https://www.coinhills.com/market/exchange/" target="_blank">Coinhills</a>(24 Hour Volume Rankings)
+
+<br /><br />
+
+<div class="row">
+    <div class="col-md-2"><u>All Exchanges</u>   <div id="exchange_list"></div></div> 
+    <div class="col-md-2"><u>Symbols</u> <br />   
+     <a href="#" onclick="">BCH/BTC</a>
+    </div> 
+    <div class="col-md-2">
+        <u>Top 10 Exchanges</u> <div>
+            @Html.ActionLink("Okex", "Okex", "Exchange", new { ex_name = "Okex" }, null) <br />
+            @Html.ActionLink("Binance", "Binance", "Exchange", new { ex_name = "Binance" }, null) <br />
+            @Html.ActionLink("Bitfinex", "Bitfinex", "Exchange", new { ex_name = "bitfinex2" }, null) <br />
+            @Html.ActionLink("Hubipro", "Hubipro", "Exchange", new { ex_name = "Hubipro" }, null) <br />
+            @Html.ActionLink("ZB", "ZB", "Exchange", new { ex_name = "ZB" }, null) <br />
+            @Html.ActionLink("Kraken", "Kraken", "Exchange", new { ex_name = "Kraken" }, null) <br />
+            @Html.ActionLink("HitBTC", "HitBTC", "Exchange", new { ex_name = "HitBTC" }, null) <br />
+            @Html.ActionLink("Bit-Z", "BitZ", "Exchange", new { ex_name = "HotBTC" }, null) <br />
+        </div>
+    </div>
+
+     
+
+
+</div> 

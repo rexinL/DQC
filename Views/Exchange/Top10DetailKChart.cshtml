@@ -1,0 +1,394 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+<script src="~/Scripts/jquery-3.3.1.min.js" type="text/javascript"></script>
+<script src="~/Scripts/highstock.js" type="text/javascript"></script>
+<script src="~/Scripts/exporting.js" type="text/javascript"></script>
+<script src="~/Scripts/export-csv.js" type="text/javascript"></script>
+<script type="text/javascript" src="https://www.highcharts.com/samples/data/ohlc.js"></script>
+
+ 
+<div class="row">
+    <div class="col-md-6">
+    <div id="container" class="chart"  >
+    </div>
+    <br /><br />
+    </div>
+    <div class="col-md-6">
+
+        <a href="#" onclick="SetSymbol(this);" class="btn btn-primary">BCH/BTC</a>
+        <a href="#" onclick="SetSymbol(this);" class="btn btn-primary">BTC/USDT</a>
+        <a href="#" onclick="SetSymbol(this);" class="btn btn-primary">ETH/BTC</a>
+        <a href="#" onclick="SetSymbol(this);" class="btn btn-primary">LTC/BTC</a>
+        <a href="#" onclick="SetSymbol(this);" class="btn btn-primary">XRP/BTC</a>
+        <table class="table" id="table_quote">
+            <thead>
+                <tr><td><div class="btn btn-outline-primary"> <span id="symbol"></span></div></td><td>close</td><td>volumn</td><td>time(20 sec.)</td><td style="display:none">timestamp</td></tr>
+            </thead>
+            <tr class="table-warning"><td>交易所平均</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+            <tr><td>Okex</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+            <tr><td>Binance</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+            <tr><td>Bitfinex</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+            <tr><td>Hubipro</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+            <tr><td>ZB</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+            <tr><td>Kraken</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+            <tr><td>HotBTC</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+            <tr><td>Bit-Z</td><td></td><td></td><td></td><td style="display:none"></td></tr>
+        </table>
+
+
+    </div>
+</div>
+
+<script>
+    var symbols="BCH/BTC";
+    var timeInt;
+    var ex_binance={};
+    var ex_okex={};
+    var chart ;
+    var arr_ohlc=[];
+    var arr_ohlc2=[];
+    var lastBar=0;
+    initChart();
+    function initChart()
+    {
+        $('#container').highcharts('StockChart', {
+            chart : {
+            //    type: 'candlestick',
+                zoomType: 'xy'
+            },
+
+            navigator : {
+                adaptToUpdatedData: false,
+                series : {
+                    data : []
+                }
+            },
+
+            scrollbar: {
+                liveRedraw: false
+            },
+
+            title: {
+                text: 'Top 10 Exchanges Average'
+            },
+ 
+            rangeSelector : {
+                buttons: [{
+                    type: 'hour',
+                    count: 1,
+                    text: '1h'
+                }, {
+                    type: 'day',
+                    count: 1,
+                    text: '1d'
+                }, {
+                    type: 'month',
+                    count: 1,
+                    text: '1m'
+                }, {
+                    type: 'year',
+                    count: 1,
+                    text: '1y'
+                }, {
+                    type: 'all',
+                    text: 'All'
+                }],
+                inputEnabled: true, // it supports only days
+                selected : 2 // day
+            },
+
+            xAxis : {
+                events : {
+                    //afterSetExtremes : afterSetExtremes
+                },
+                minRange: 3600 * 1000 // one hour
+            },
+
+            series : [{
+                //  name:"avg",
+                type:'candlestick',
+                data :[],
+                dataGrouping: {
+                    enabled: false
+                }
+            }]
+        });
+        chart = Highcharts.charts[0];
+    }
+    
+    document.addEventListener ("DOMContentLoaded", function () {
+        (async () => {
+          
+           
+
+            const proxy = 'https://cors-anywhere.herokuapp.com/';
+            ex_okex = new ccxt.okex({ 'proxy': proxy });
+            ex_binance = new ccxt.binance({ 'proxy': proxy });
+            ex_bitfinex2 = new ccxt.bitfinex2({ 'proxy': proxy });
+            ex_hubipro = new ccxt.huobipro({ 'proxy': proxy });
+            ex_zb = new ccxt.zb({ 'proxy': proxy });
+            ex_kraken = new ccxt.kraken({ 'proxy': proxy });
+            ex_hotbtc = new ccxt.hitbtc2({ 'proxy': proxy });
+            ex_bitz = new ccxt.bitz({ 'proxy': proxy });
+            
+            let markets_okex = await      ex_okex.load_markets ();
+            let markets_binance = await   ex_binance.load_markets ();
+            let markets_2= await   ex_bitfinex2.load_markets ();
+            let markets_3 = await   ex_hubipro.load_markets ();
+            let markets_4 = await   ex_zb.load_markets ();
+            let markets_5 = await   ex_kraken.load_markets ();
+            let markets_6 = await   ex_hotbtc.load_markets ();
+            let markets_7 = await   ex_bitz.load_markets ();
+          
+        
+
+
+            console.log("OK");
+        }) ();
+    });
+
+    function SetSymbol(o)
+    {
+       
+        symbols=o.innerText;
+        $("#symbol").text(symbols);
+        fetchOHLCVStart(symbols);
+     //   initChart();
+    }
+    var fetchOHLCVStart   =function  (o)
+    {
+        //   timeInt = setInterval(fetchOHLCV(o), 1000);
+        clearInterval(timeInt);
+        timeInt = setInterval(function() { fetchOHLCV(o); }, 10000);
+    };
+    var fetchOHLCV=function (o)
+    {
+        console.log(o);
+     
+        var row_num=0;
+        (async () => {           
+          
+             if(ex_okex.has.fetchOHLCV){
+                console.log("ex_okex.has.fetchOHLCV");    
+                (async () => {
+                    
+                        console.log (ex_okex.rateLimit); // one minute
+                        //await sleep((ex_okex.rateLimit)); // milliseconds
+                        await sleep((10000)); // milliseconds
+                        arr_ohlc=await ex_okex.fetchOHLCV (o, '1m'); // one minute
+                        console.log(arr_ohlc[arr_ohlc.length-1][0]);
+                        calDrawChart(arr_ohlc);
+                }) ();            
+            }
+            //if(ex_bitfinex2.has.fetchOHLCV){
+            //    console.log("ex_bitfinex2.has.fetchOHLCV");    
+            //     (async () => {
+                    
+            //         console.log (ex_bitfinex2.rateLimit); // one minute
+            //         //await sleep((ex_okex.rateLimit)); // milliseconds
+            //         await sleep((10000)); // milliseconds
+            //         arr_ohlc=await ex_bitfinex2.fetchOHLCV (o, '1m'); // one minute
+            //         console.log(arr_ohlc[arr_ohlc.length-1][0]);
+            //         calDrawChart(arr_ohlc);
+            //     }) ();            
+            // }
+
+
+            //ex_okex.fetchOHLCV(o).then (ticker => {              
+            //    fillTable(2,ticker);         
+
+            //    }).catch(e=>{ clearTable(2);});
+             
+            //    ex_binance.fetchOHLCV(o).then (ticker => {             
+            //        fillTable(3,ticker);            
+            //    }).catch(e=>{ clearTable(3);});
+              
+            //    ex_bitfinex2.fetchOHLCV(o).then (ticker => {             
+            //        fillTable(4,ticker);            
+            //    }).catch(e=>{ clearTable(4);});
+              
+            //    ex_hubipro.fetchOHLCV(o).then (ticker => {             
+            //        fillTable(5,ticker);            
+            //    }).catch(e=>{ clearTable(5);});
+              
+            //    ex_zb.fetchOHLCV(o).then (ticker => {             
+            //        fillTable(6,ticker);            
+            //    }).catch(e=>{ clearTable(6);});
+
+            //    ex_kraken.fetchOHLCV(o).then (ticker => {             
+            //        fillTable(7,ticker);                  
+            //    }).catch(e=>{ clearTable(7);});
+            
+           
+            //    ex_hotbtc.fetchOHLCV(o).then (ticker => {             
+            //        fillTable(8,ticker);            
+            //    }).catch(e=>{ clearTable(8);});
+
+            //    row_num=9;
+            //    ex_bitz.fetchOHLCV(o).then (ticker => {             
+            //        fillTable(9,ticker);            
+            //    }).catch(e=>{ clearTable(9);});    
+            //    calTickerAverage();
+           
+         
+        }) ();
+    };
+
+    
+    var clearTable=function (tbrow)
+    {
+        // console.log(ticker);
+        (async () => {         
+                document.getElementById ('table_quote').rows[tbrow].cells[1].innerText= "";  
+                document.getElementById ('table_quote').rows[tbrow].cells[2].innerText= "";
+                document.getElementById ('table_quote').rows[tbrow].cells[3].innerText= "";    
+                document.getElementById ('table_quote').rows[tbrow].cells[4].innerText= "";    
+        }) ();
+    };
+    var fillTable=function (tbrow,ticker)
+    {
+       // console.log(ticker);
+        (async () => {        
+            document.getElementById ('table_quote').rows[tbrow].cells[1].innerText= ticker.close;  
+            document.getElementById ('table_quote').rows[tbrow].cells[2].innerText= ticker.baseVolume;  
+            document.getElementById ('table_quote').rows[tbrow].cells[3].innerText= ticker.datetime;    
+            document.getElementById ('table_quote').rows[tbrow].cells[4].innerText= ticker.timestamp;    
+           
+        }) ();
+    };
+
+    var calTickerAverage=function ()
+    {
+      
+        (async () => {
+            var tb=document.getElementById ('table_quote');
+            var close=0,         tmp_close=0 ,count=0 ,tmp_time=0, max_time=0,avg=0;
+            var chart = Highcharts.charts[0];
+
+            for (var i = 2; i < tb.rows.length; i++) {
+                    
+                tmp_close=parseFloat(tb.rows[i].cells[1].innerText);  ;
+                tmp_time=parseInt(tb.rows[i].cells[4].innerText);
+              
+                if(tb.rows[i].cells[1].innerText!="")
+                {
+                    close+=tmp_close;
+                    max_time=(tmp_time>max_time)?tmp_time:max_time;
+                  
+                    count++;
+                }
+            }
+            avg=close/count;
+            tb.rows[1].cells[1].innerText=avg;
+            tb.rows[1].cells[4].innerText=max_time;
+            console.log( avg);
+            if(!isNaN(avg))
+            { 
+                console.log(max_time);
+          
+             //   chart.series[0].addPoint([max_time, avg]);
+            }
+         
+          
+        }) ();
+
+       
+    };
+    var calDrawChart=function (array)
+    {
+      
+        var arr_ohlc2=[];
+
+        (async () => {
+           
+
+            if(lastBar===0)
+            {
+                for (var i = 0; i < array.length; i++) {
+                    arr_ohlc2.push( [ array[i][0] ,
+                      parseFloat(   array[i][1]),
+                          parseFloat(array[i][2]),
+                          parseFloat( array[i][3]),
+                            parseFloat(array[i][4])
+                    ]);
+                }
+              
+                chart.series[0].setData(arr_ohlc2);
+            }
+
+            if(lastBar!==0 && lastBar!==arr_ohlc[arr_ohlc.length-1][0]){
+                //var point = {
+                //    x:  arr_ohlc[arr_ohlc.length-1][0],
+                //    open:    parseFloat(   arr_ohlc[arr_ohlc.length-1][1]),
+                //    high:    parseFloat(arr_ohlc[arr_ohlc.length-1][2]),
+                //    low:  parseFloat( arr_ohlc[arr_ohlc.length-1][3]),
+                //    close:  parseFloat(arr_ohlc[arr_ohlc.length-1][4])
+                //};
+                var point =[
+                  arr_ohlc[arr_ohlc.length-1][0],
+                      parseFloat(   arr_ohlc[arr_ohlc.length-1][1]),
+                       parseFloat(arr_ohlc[arr_ohlc.length-1][2]),
+                     parseFloat( arr_ohlc[arr_ohlc.length-1][3]),
+                      parseFloat(arr_ohlc[arr_ohlc.length-1][4])
+                ];
+                chart.series[0].addPoint(point, true, true);
+                //chart.series[0].addPoint( [ arr_ohlc[arr_ohlc.length-1][0],
+                //      parseFloat(  arr_ohlc[arr_ohlc.length-1][1]),
+                //          parseFloat(arr_ohlc[arr_ohlc.length-1][2]),
+                //          parseFloat( arr_ohlc[arr_ohlc.length-1][3]),
+                //            parseFloat(arr_ohlc[arr_ohlc.length-1][4])                ], true, true);
+                
+            } //endif
+       
+
+            lastBar=arr_ohlc[array.length-1][0];
+        }) ();
+
+       
+    };
+    function sleep(ms) {
+        return new Promise(r => setTimeout(r, ms));
+    }
+</script>
+
+
+
+<h2>Exchanges</h2>
+    Top 10  Exchanges from <a href="https://www.coinhills.com/market/exchange/" target="_blank">Coinhills</a>(24 Hour Volume Rankings)
+<br />
+<br />
+    <div class="row">
+
+        <div class="col-md-2">
+            <u>Symbols</u> <br />
+
+
+
+        </div>
+        <div class="col-md-2">
+            <u>Top 10 Exchanges</u> <div>
+                @Html.ActionLink("Okex", "Okex", "Exchange", new { ex_name = "Okex" }, null) <br />
+                @Html.ActionLink("Binance", "Binance", "Exchange", new { ex_name = "Binance" }, null) <br />
+                @Html.ActionLink("Bitfinex", "Bitfinex", "Exchange", new { ex_name = "bitfinex2" }, null) <br />
+                @Html.ActionLink("Hubipro", "Hubipro", "Exchange", new { ex_name = "Hubipro" }, null) <br />
+                @Html.ActionLink("ZB", "ZB", "Exchange", new { ex_name = "ZB" }, null) <br />
+                @Html.ActionLink("Kraken", "Kraken", "Exchange", new { ex_name = "Kraken" }, null) <br />
+                @Html.ActionLink("HotBTC", "HotBTC", "Exchange", new { ex_name = "HotBTC" }, null) <br />
+                @Html.ActionLink("Bit-Z", "BitZ", "Exchange", new { ex_name = "HotBTC" }, null) <br />
+            </div>
+        </div>
+        <div class="col-md-8">
+       
+
+
+
+        </div>
+
+
+
+    </div>

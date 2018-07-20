@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<parameters>
+  <parameter name="IIS Web Application Name" description="" value="rexion-001-site1" tags="IisApp">
+    <parameterEntry kind="ProviderPath" scope="IisApp" match="^D:\\CodeProject\\VirtualCurrency\\VirtualCurrency\\Web\\obj\\Release\\Package\\PackageTmp$" />
+  </parameter>
+  <parameter name="DefaultConnection-Web.config Connection String" description="" value="Data Source=(LocalDb)\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\aspnet-Web-20180620092020.mdf;Initial Catalog=aspnet-Web-20180620092020;Integrated Security=True" tags="">
+    <parameterEntry kind="XmlFile" scope="D:\\CodeProject\\VirtualCurrency\\VirtualCurrency\\Web\\obj\\Release\\Package\\PackageTmp\\Web\.config$" match="/configuration/connectionStrings/add[@name='DefaultConnection']/@connectionString" />
+  </parameter>
+</parameters>

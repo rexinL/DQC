@@ -1,0 +1,260 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+<script>
+    var symbols="BCH/BTC";
+    var timeInt;
+    var tickjson=[];
+
+
+    document.addEventListener ("DOMContentLoaded", function () {
+        (async () => {
+            const proxy = 'https://cors-anywhere.herokuapp.com/';
+            ex_okex = new ccxt.okex({ 'proxy': proxy });
+            ex_binance = new ccxt.binance({ 'proxy': proxy });
+            ex_bitfinex2 = new ccxt.bitfinex2({ 'proxy': proxy });
+            ex_hubipro = new ccxt.huobipro({ 'proxy': proxy });
+            ex_zb = new ccxt.zb({ 'proxy': proxy });
+            ex_kraken = new ccxt.kraken({ 'proxy': proxy });
+            ex_hotbtc = new ccxt.hitbtc2({ 'proxy': proxy });
+            ex_bitz = new ccxt.bitz({ 'proxy': proxy });
+            
+            let markets_okex = await      ex_okex.load_markets ();
+            let markets_binance = await   ex_binance.load_markets ();
+            let markets_2= await   ex_bitfinex2.load_markets ();
+            let markets_3 = await   ex_hubipro.load_markets ();
+            let markets_4 = await   ex_zb.load_markets ();
+            let markets_5 = await   ex_kraken.load_markets ();
+            let markets_6 = await   ex_hotbtc.load_markets ();
+            let markets_7 = await   ex_bitz.load_markets ();
+          
+            console.log("OK");
+        }) ();
+    });
+
+    function SetSymbol(o)
+    {
+       
+        symbols=o.innerText;
+        $("#symbol").text(symbols);
+        fetchTickerStart(symbols);
+    }
+    var fetchTickerStart   =function  (o)
+    {
+        //   timeInt = setInterval(fetchTicker(o), 1000);
+        clearInterval(timeInt);
+        timeInt = setInterval(function() { fetchTicker(o); }, 20000);
+    };
+    var fetchTicker=function (o)
+    {
+        console.log(o);
+     
+        var row_num=0;
+        (async () => {           
+          
+                ex_okex.fetchTicker(o).then (ticker => {              
+                    fillTable(2,ticker);          
+                }).catch(e=>{ clearTable(2);});
+             
+                ex_binance.fetchTicker(o).then (ticker => {             
+                    fillTable(3,ticker);            
+                }).catch(e=>{ clearTable(3);});
+              
+                ex_bitfinex2.fetchTicker(o).then (ticker => {             
+                    fillTable(4,ticker);            
+                }).catch(e=>{ clearTable(4);});
+              
+                ex_hubipro.fetchTicker(o).then (ticker => {             
+                    fillTable(5,ticker);            
+                }).catch(e=>{ clearTable(5);});
+              
+                ex_zb.fetchTicker(o).then (ticker => {             
+                    fillTable(6,ticker);            
+                }).catch(e=>{ clearTable(6);});
+
+                ex_kraken.fetchTicker(o).then (ticker => {             
+                    fillTable(7,ticker);                  
+                }).catch(e=>{ clearTable(7);});
+            
+           
+                ex_hotbtc.fetchTicker(o).then (ticker => {             
+                    fillTable(8,ticker);            
+                }).catch(e=>{ clearTable(8);});
+
+                row_num=9;
+                ex_bitz.fetchTicker(o).then (ticker => {             
+                    fillTable(9,ticker);            
+                }).catch(e=>{ clearTable(9);});    
+                calTickerAverage();
+           
+         
+        }) ();
+    };
+
+    
+    var clearTable=function (tbrow)
+    {
+        // console.log(ticker);
+        (async () => {         
+                document.getElementById ('table_quote').rows[tbrow].cells[1].innerText= "";  
+                document.getElementById ('table_quote').rows[tbrow].cells[2].innerText= "";
+                document.getElementById ('table_quote').rows[tbrow].cells[3].innerText= "";    
+                document.getElementById ('table_quote').rows[tbrow].cells[4].innerText= "";    
+        }) ();
+    };
+    var fillTable=function (tbrow,ticker)
+    {
+       // console.log(ticker);
+        (async () => {        
+            document.getElementById ('table_quote').rows[tbrow].cells[1].innerText= ticker.close;  
+            document.getElementById ('table_quote').rows[tbrow].cells[2].innerText= ticker.baseVolume;  
+            document.getElementById ('table_quote').rows[tbrow].cells[3].innerText= ticker.datetime;    
+            document.getElementById ('table_quote').rows[tbrow].cells[4].innerText= ticker.timestamp;    
+           
+        }) ();
+    };
+
+    var calTickerAverage=function ()
+    {
+      
+        (async () => {
+            var tb=document.getElementById ('table_quote');
+            var close=0,         tmp_close=0 ,count=0 ,tmp_time=0, max_time=0;
+      
+            for (var i = 2; i < tb.rows.length; i++) {
+                    
+                tmp_close=parseFloat(tb.rows[i].cells[1].innerText);  ;
+                tmp_time=parseInt(tb.rows[i].cells[4].innerText);
+                console.log(tmp_time);
+                console.log(tmp_time>max_time);
+                if(tb.rows[i].cells[1].innerText!="")
+                {
+                    close+=tmp_close;
+                    max_time=(tmp_time>max_time)?tmp_time:max_time;
+
+                    count++;
+                }
+            }
+            tb.rows[1].cells[1].innerText=close/count;
+            tb.rows[1].cells[4].innerText=max_time;
+
+            pushToJson();
+            //if(max_time!==tickjson[tickjson.length-1][4])
+            //{  
+            //    pushToJson();
+            //}
+         
+        }) ();
+    };
+
+    function pushToJson()
+    {
+        var tb=document.getElementById ('table_quote');
+
+        for (var i = 2; i < tb.rows.length; i++) {
+            tickjson.push([
+             tb.rows[i].cells[0].innerText,
+                parseFloat(tb.rows[i].cells[1].innerText),
+                    parseFloat(tb.rows[i].cells[2].innerText),
+                     tb.rows[i].cells[3].innerText,
+                     parseInt(tb.rows[i].cells[4].innerText)
+            ]);
+        }
+    }
+
+    function save(){
+
+      
+        var data  = "text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tickjson));
+ 
+        var a       = document.createElement('a');
+        a.href      = 'data:' + data;
+        a.download  = 'data.txt';
+        a.innerHTML = 'download .txt file of json';
+ 
+        document.getElementById('save_con').appendChild(a);
+
+        //var fso = new ActiveXObject("Scripting.FileSystemObject");
+        //var fh = fso.OpenTextFile("data.txt", 8, false, 0);
+        //fh.WriteLine('1');
+        //fh.Close();
+
+
+
+        //var txtFile = "/tmp/test.txt";
+        //var file = new File(txtFile,"write");
+        //var str = JSON.stringify(JsonExport);
+
+        //log("opening file...");
+        //file.open(); 
+        //log("writing file..");
+        //file.writeline(str);
+        //file.close();
+    
+    }
+</script>
+
+<h2>Exchanges</h2>
+Top 10  Exchanges from <a href="https://www.coinhills.com/market/exchange/" target="_blank">Coinhills</a>(24 Hour Volume Rankings)
+
+<br /><br />
+
+
+
+<div class="row">
+
+    <div class="col-md-2">
+        <u>Symbols</u> <br />
+
+
+        <a href="#" onclick="SetSymbol(this);">BCH/BTC</a><br />
+        <a href="#" onclick="SetSymbol(this);">BTC/USDT</a><br />
+        <a href="#" onclick="SetSymbol(this);">ETH/BTC</a><br />
+        <a href="#" onclick="SetSymbol(this);">LTC/BTC</a><br />
+        <a href="#" onclick="SetSymbol(this);">XRP/BTC</a>
+         
+    </div>
+    <div class="col-md-2">
+        <u>Top 10 Exchanges</u> <div>
+            @Html.ActionLink("Okex", "Okex", "Exchange", new { ex_name = "Okex" }, null) <br />
+            @Html.ActionLink("Binance", "Binance", "Exchange", new { ex_name = "Binance" }, null) <br />
+            @Html.ActionLink("Bitfinex", "Bitfinex", "Exchange", new { ex_name = "bitfinex2" }, null) <br />
+            @Html.ActionLink("Hubipro", "Hubipro", "Exchange", new { ex_name = "Hubipro" }, null) <br />
+            @Html.ActionLink("ZB", "ZB", "Exchange", new { ex_name = "ZB" }, null) <br />
+            @Html.ActionLink("Kraken", "Kraken", "Exchange", new { ex_name = "Kraken" }, null) <br />
+            @Html.ActionLink("HotBTC", "HotBTC", "Exchange", new { ex_name = "HotBTC" }, null) <br />
+            @Html.ActionLink("Bit-Z", "BitZ", "Exchange", new { ex_name = "HotBTC" }, null) <br />
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div  class="btn btn-info" onclick="save();" >Save</div>
+        <div id="save_con"></div>
+
+        <table class="table" id="table_quote">
+            <thead>
+                <tr><td><div class="btn btn-primary"> <span id="symbol"></span></div></td><td>close</td><td>volumn</td><td>time(20 sec.)</td><td>timestamp</td></tr>
+            </thead>
+            <tr class="table-warning"><td>交易所平均</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>Okex</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td >Binance</td><td></td><td></td><td></td><td></td></tr>           
+            <tr><td>Bitfinex</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>Hubipro</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>ZB</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>Kraken</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>HitBTC</td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>Bit-Z</td><td></td><td></td><td></td><td></td></tr>
+        </table>
+
+
+      
+     
+
+    </div>
+
+
+
+</div>

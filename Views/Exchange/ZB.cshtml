@@ -1,0 +1,141 @@
+﻿@{
+    ViewBag.Title = "Binance";
+}
+
+@*https://zhuanlan.zhihu.com/p/36981176
+websocket*@
+
+<script type="text/javascript" src="https://unpkg.com/ccxt"></script>
+<script>
+    var exchange={};
+    var isQuoteOnOff=true;
+    var timeInt;
+
+
+    document.addEventListener ("DOMContentLoaded", function () {
+
+        //alert ('ccxt version ' + ccxt.version + ' supporting '+ ccxt.exchanges.length.toString () + ' exchanges');
+        (async () => {
+            const proxy = 'https://cors-anywhere.herokuapp.com/'
+            exchange = new ccxt.zb({ 'proxy': proxy })
+            document.getElementById ('exchange_name').innerHTML=exchange.name ;
+            document.getElementById ('site_url').href=exchange.urls.www ;
+            document.getElementById ('site_url').innerHTML=exchange.urls.www ;
+            document.getElementById ('country').innerHTML=exchange.countries;
+            document.title=exchange.name;
+
+            let markets = await exchange.load_markets ()
+
+            document.getElementById ('all_symbol_list').innerHTML=exchange.symbols.join('<br />');
+
+            let symbols =[];
+            for (var i = 0; i < exchange.symbols.length; i++) {
+
+                if(exchange.symbols[i].includes("BTC/")  ||  exchange.symbols[i].includes("BCH/")
+                     ||  exchange.symbols[i].includes("ETH/")   ||  exchange.symbols[i].includes("LTC/")
+                    ||  exchange.symbols[i].includes("XRP")  )
+                {
+                    symbols.push(exchange.symbols[i]);
+                }
+            }
+            var s_html="";
+            var s_split=[];
+            for (var i = 0; i < symbols.length; i++) {
+                s_split=  symbols[i].split('/');
+
+                s_html+="<a  href='#' onclick='fetchTickerStart(this)'>"+symbols[i]+"</a><br />";
+            }
+
+            document.getElementById ('symbol_list').innerHTML=s_html;;
+
+
+            //document.getElementById ('currency_list').innerHTML=exchange.currencies;
+
+
+
+        }) ()
+    })
+
+    function initExchange()
+    {
+        var ex_name = getParameterByName('ex_name');
+        console.log(ex_name);
+    }
+    var fetchTicker=function (o)
+    {
+        console.log(o.innerText);
+        (async () => {
+
+            if(isQuoteOnOff){
+                console.log(isQuoteOnOff);
+                exchange.fetchTicker (o.innerText).then (ticker => {
+
+                    const text = [
+                        exchange.id,
+                        o.innerText,
+                        JSON.stringify (ticker, undefined, '\n\t')
+                    ]
+                    document.getElementById ('quotes').innerHTML ="close:"+ticker.close+"<br />volume:"+ticker.baseVolume+"<br />time:"+ticker.datetime;
+                    document.getElementById ('quotes_raw').innerHTML = text.join (' ')
+                });
+            } else{
+                alert("please switch quote");
+            }
+        }) ();
+    };
+
+    var fetchTickerStart   =function  (o)
+    {
+        //   timeInt = setInterval(fetchTicker(o), 1000);
+        clearInterval(timeInt);
+        timeInt = setInterval(function() { fetchTicker(o); }, 3000);
+    };
+
+    function getParameterByName(name, url) {
+        if (!url) url = window.location.href;
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+    function quoteOnOff()
+    {
+        isQuoteOnOff=!isQuoteOnOff;
+        if(isQuoteOnOff===false)
+        {
+            clearInterval(timeInt);
+        }
+
+        document.getElementById ('quoteOnOff').className =(isQuoteOnOff)?"btn btn-info":"btn btn-outline-info";
+
+        document.getElementById ('quoteOnOff').value =(isQuoteOnOff)?"On":"Off";
+    }
+</script>
+<h2 id="exchange_name"></h2>
+
+<div class="row">
+    <div class="col-md-2">site</div>
+    <div class="col-md-4"><a id="site_url"></a></div>
+    <div class="col-md-2">country</div>
+    <div class="col-md-4" id="country"></div>
+</div>
+
+<div class="row">
+    <div class="col-md-2">quoteOnOff Status</div>
+    <div class="col-md-1"><input id="quoteOnOff" type="button" class="btn btn-outline-info" value="On" onclick="quoteOnOff();" /></div>
+</div>
+
+<hr />
+
+<div class="row">
+    <div class="col-md-2"><u>allsymbol</u>  <div id="all_symbol_list"></div></div>
+    <div class="col-md-2"><u>symbol</u>   <div id="symbol_list"></div></div>
+    <div class="col-md-2"><u>currency</u>  <span id="currency_list"></span></div>
+    <div class="col-md-2"><u>quotes</u>  <div id="quotes"></div></div>
+    <div class="col-md-2"><u>quotes_raw</u>  <div id="quotes_raw"></div></div>
+    <div id="content"></div>
+
+
+</div>
