@@ -11,7 +11,7 @@ using Web.Models;
 namespace Web.Controllers
 {
     [Authorize]
-    [RequireHttps]
+   // [RequireHttps]
     public class ManageController : Controller
     {
         private ApplicationSignInManager _signInManager;

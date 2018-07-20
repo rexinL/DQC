@@ -13,7 +13,7 @@ using Web.Models;
 namespace Web.Controllers
 {
     [Authorize]
-    [RequireHttps]
+  //  [RequireHttps]
     public class AccountController : Controller
     {
         private ApplicationSignInManager _signInManager;
