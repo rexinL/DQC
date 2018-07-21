@@ -27,6 +27,16 @@ namespace Web.Controllers
         //    
 
         //   [HttpGet, ActionName("GetByDate")]
+        [HttpGet, Route("api/HistoryQuote/GetServerIp")]
+        public string GetServerIp()
+        {
+            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName()); // `Dns.Resolve()` method is deprecated.
+            IPAddress ipAddress = ipHostInfo.AddressList[0];
+            return ipAddress.ToString();
+        }
+
+
+        //   [HttpGet, ActionName("GetByDate")]
         [HttpGet, Route("api/HistoryQuote/GetByDate/{dt}")]       
         public string GetByDate(int dt )
         {
