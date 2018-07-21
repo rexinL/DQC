@@ -40,9 +40,18 @@ namespace Web.Controllers
         [HttpGet, Route("api/HistoryQuote/GetByDate/{dt}")]       
         public string GetByDate(int dt )
         {
-            DataTable dtable = VC.Tools.Helper.MysqlClientDBHelper.GetDataTable("select * from dbcoin.rw_tick_20s where dt="+dt +" order by timestamp ");
+            try
+            {
+                DataTable dtable = VC.Tools.Helper.MysqlClientDBHelper.GetDataTable("select * from dbcoin.rw_tick_20s where dt=" + dt + " order by timestamp ");
 
-            return JsonConvert.SerializeObject(dtable);
+                return JsonConvert.SerializeObject(dtable);
+            }
+            catch (Exception ex)
+            {
+
+                return ex.Message;
+            }
+      
         }
 
 
