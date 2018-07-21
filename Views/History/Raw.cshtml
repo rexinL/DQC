@@ -1,0 +1,78 @@
+﻿
+@{
+    ViewBag.Title = "History";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<h2>原始历史数据</h2>
+
+<hr />
+
+日期<input id="txtDt" type="text" onblur="getProducts(this.value);" />yyyymmdd
+
+幣別
+ <div class="btn btn-info" onclick="filter('BCH/USD')">BCH/USD</div>
+<div class="btn btn-info" onclick="filter('BCH/USDT')">BCH/USDT</div>
+<div class="btn btn-info" onclick="filter('BTC/USD')">BTC/USD</div>
+<div class="btn btn-info" onclick="filter('BTC/USDT')">BTC/USDT</div>
+<div class="btn btn-info" onclick="filter('ETH/USD')">ETH/USD</div>
+<div class="btn btn-info" onclick="filter('ETH/USDT')">ETH/USDT</div>
+<hr />
+<table class="table">
+    <thead>
+        <tr>
+            <td>币别</td>
+            <td>交易所</td>
+            <td>时间</td>
+            <td>收盘价</td>
+        </tr>
+    </thead>
+    <tbody id="table"></tbody>
+</table>
+
+
+@section scripts{
+
+    <script type="text/javascript">
+        function getProducts(o, s) {
+
+            $.getJSON("/api/HistoryQuote/GetByDate/" + o,
+                function (data) {
+
+                    var jsonData = JSON.parse(data);
+                    $('#table').empty(); // Clear the table body.
+
+                    // Loop through the list of products.
+                    $.each(jsonData, function (key, val) {
+                        // Add a table row for the product.
+                        var row = '<td>' + val.symbol + '</td><td>' + val.exchange_id + '</td><td>' + val.datetime_str + '</td><td>' + val.close + '</td>';
+                        $('<tr/>', { html: row })  // Append the name.
+                            .appendTo($('#table'));
+                    });
+                });
+        }
+        function filter(o) {
+
+            var input, filter, table, tr, td, i;
+
+            console.log(o);
+
+            table = document.getElementById("table");
+            tr = table.getElementsByTagName("tr");
+            for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[0];
+                if (td) {
+                    console.log(td.innerHTML.toUpperCase());
+                    if (td.innerHTML===o) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+        getProducts();
+    </script>
+
+}
