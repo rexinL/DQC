@@ -56,14 +56,14 @@
 
             var input, filter, table, tr, td, i;
 
-            console.log(o);
+           // console.log(o);
 
             table = document.getElementById("table");
             tr = table.getElementsByTagName("tr");
             for (i = 0; i < tr.length; i++) {
                 td = tr[i].getElementsByTagName("td")[0];
                 if (td) {
-                    console.log(td.innerHTML.toUpperCase());
+                  //  console.log(td.innerHTML.toUpperCase());
                     if (td.innerHTML===o) {
                         tr[i].style.display = "";
                     } else {
